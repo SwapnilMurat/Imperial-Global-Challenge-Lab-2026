@@ -3,8 +3,6 @@
 This repository contains a complete implementation of the RecoverAI Joint demo described in:
 
 - RecoverAI_Joint_GCL2026.pptx.pdf
-- https://recoverai-joint-demo.swapnilsrivastava199.chatgpt.site/
-- https://recoverai-joint-demo.swapnilsrivastava199.chatgpt.site/application
 
 It includes:
 
