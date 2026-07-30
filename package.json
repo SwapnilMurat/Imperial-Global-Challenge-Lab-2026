@@ -1,0 +1,17 @@
+{
+  "name": "recoverai-joint-gcl2026",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "npm run dev --workspace @recoverai/api & npm run dev --workspace @recoverai/web",
+    "dev:api": "npm run dev --workspace @recoverai/api",
+    "dev:web": "npm run dev --workspace @recoverai/web",
+    "build": "npm run build --workspace @recoverai/web",
+    "check": "npm run typecheck --workspace @recoverai/web && npm run typecheck --workspace @recoverai/api"
+  }
+}
