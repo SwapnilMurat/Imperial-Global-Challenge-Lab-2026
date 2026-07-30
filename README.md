@@ -17,6 +17,10 @@ It includes:
 
 ## ML Architecture (Main View)
 
+![RecoverAI Joint - Machine Learning Architecture](ML%20Model.png)
+
+Exact architecture image used in the deck and demo.
+
 ```mermaid
 flowchart LR
 	A[1. Data Collection\nThigh IMU + Shank IMU] --> B[2. Edge Processing\nESP32 Hub\nFusion + Orientation + Knee Angle]
