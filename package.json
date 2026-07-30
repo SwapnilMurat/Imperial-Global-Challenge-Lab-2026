@@ -11,6 +11,9 @@
     "dev": "npm run dev --workspace @recoverai/api & npm run dev --workspace @recoverai/web",
     "dev:api": "npm run dev --workspace @recoverai/api",
     "dev:web": "npm run dev --workspace @recoverai/web",
+    "dev:ml": "python3 -m uvicorn app.main:app --app-dir apps/ml --host 0.0.0.0 --port 8000",
+    "deploy:up": "docker compose up --build -d",
+    "deploy:down": "docker compose down",
     "build": "npm run build --workspace @recoverai/web",
     "check": "npm run typecheck --workspace @recoverai/web && npm run typecheck --workspace @recoverai/api"
   }

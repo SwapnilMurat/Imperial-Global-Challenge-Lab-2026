@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import type { CheckIn, ExerciseTask } from "@recoverai/shared";
+import type { CheckIn, ExerciseTask, MLInferenceResponse, ProgressPoint } from "@recoverai/shared";
 import {
   completeExercise,
   getCareTeam,
@@ -8,6 +8,7 @@ import {
   getPatient,
   getProgress,
   getTodayTasks,
+  runMLInference,
   submitCheckIn
 } from "../lib/api";
 
@@ -27,12 +28,13 @@ export function ApplicationPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const [patient, setPatient] = useState<any>(null);
+  const [patient, setPatient] = useState<{ name: string; postOpDay: number; mission: string; model: { style: string; formula: string } } | null>(null);
   const [tasks, setTasks] = useState<ExerciseTask[]>([]);
   const [checkIn, setCheckIn] = useState<CheckIn | null>(null);
-  const [progress, setProgress] = useState<any>(null);
-  const [devices, setDevices] = useState<any>(null);
-  const [care, setCare] = useState<any>(null);
+  const [progress, setProgress] = useState<{ points: ProgressPoint[]; metrics: { romLatest: number; adherence: number; trend: string } } | null>(null);
+  const [devices, setDevices] = useState<{ architecture: string; devices: { id: string; label: string; signalQuality: string; batteryPct: number }[] } | null>(null);
+  const [care, setCare] = useState<{ activePatients: number; adherenceRate: number; flaggedPatients: number; avgRomDelta: number } | null>(null);
+  const [mlInference, setMlInference] = useState<MLInferenceResponse | null>(null);
 
   const [draftCheckIn, setDraftCheckIn] = useState<CheckInDraft>({
     painScore: 3,
@@ -49,13 +51,14 @@ export function ApplicationPage() {
       try {
         setLoading(true);
         setError(null);
-        const [patientData, tasksData, checkInData, progressData, deviceData, careData] = await Promise.all([
+        const [patientData, tasksData, checkInData, progressData, deviceData, careData, mlData] = await Promise.all([
           getPatient(),
           getTodayTasks(),
           getLatestCheckIn(),
           getProgress(),
           getDevices(),
-          getCareTeam()
+          getCareTeam(),
+          runMLInference()
         ]);
 
         if (!mounted) return;
@@ -66,6 +69,7 @@ export function ApplicationPage() {
         setProgress(progressData);
         setDevices(deviceData);
         setCare(careData);
+        setMlInference(mlData);
       } catch (err) {
         if (!mounted) return;
         setError(err instanceof Error ? err.message : "Failed to load application data.");
@@ -99,6 +103,10 @@ export function ApplicationPage() {
 
   if (error) {
     return <main className="app-shell">Application error: {error}</main>;
+  }
+
+  if (!patient || !progress || !devices || !care || !mlInference) {
+    return <main className="app-shell">Application error: Incomplete data response.</main>;
   }
 
   return (
@@ -140,6 +148,7 @@ export function ApplicationPage() {
             <h2>Model transparency</h2>
             <p>{patient.model.style}</p>
             <p>{patient.model.formula}</p>
+            <p>Recovery score: {mlInference.signals.recoveryScore.toFixed(1)} / 100</p>
           </article>
         </section>
       )}
@@ -151,6 +160,7 @@ export function ApplicationPage() {
               <h2>{task.title}</h2>
               <p>{task.target}</p>
               <p>ROM: {task.metric.romDeg} deg | Reps: {task.metric.reps}</p>
+              <p>Exercise quality class: {mlInference.signals.exerciseQuality}</p>
               <button disabled={task.completed} onClick={() => onCompleteExercise(task.id)}>
                 {task.completed ? "Completed" : "Mark complete"}
               </button>
@@ -235,11 +245,19 @@ export function ApplicationPage() {
           <article className="card">
             <h2>Connected devices</h2>
             <p>{devices.architecture}</p>
-            {devices.devices.map((device: any) => (
+            {devices.devices.map((device) => (
               <p key={device.id}>
                 {device.label}: {device.signalQuality}, battery {device.batteryPct}%
               </p>
             ))}
+          </article>
+          <article className="card">
+            <h2>ML outputs and applications</h2>
+            <p>Recovery score: {mlInference.signals.recoveryScore.toFixed(1)}</p>
+            <p>Repetition count regression: {mlInference.signals.repetitionCount}</p>
+            <p>ROM progression regression: {mlInference.signals.romProgression.toFixed(2)}</p>
+            <p>Deterioration risk: {mlInference.signals.deteriorationRisk}</p>
+            <p>Confidence: {(mlInference.signals.confidence * 100).toFixed(0)}%</p>
           </article>
         </section>
       )}
@@ -260,6 +278,14 @@ export function ApplicationPage() {
               Completed {completedCount}/{tasks.length} exercises and latest ROM {progress.metrics.romLatest} deg.
             </p>
             <p>Trajectory trend: {progress.metrics.trend}</p>
+            <p>Risk alert class: {mlInference.signals.deteriorationRisk}</p>
+            <p>Model version: {mlInference.modelVersion}</p>
+          </article>
+          <article className="card">
+            <h2>Continuous learning pipeline</h2>
+            {mlInference.pipeline.map((step) => (
+              <p key={step}>{step}</p>
+            ))}
           </article>
         </section>
       )}

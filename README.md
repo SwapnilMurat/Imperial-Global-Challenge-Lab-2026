@@ -12,6 +12,7 @@ It includes:
 - Patient application experience
 - Care-team dashboard mode
 - Mock API for recovery signals, exercises, check-ins, and devices
+- Deployable ML microservice matching the architecture diagram
 - Shared schema layer aligned to the architecture
 
 ## Architecture
@@ -22,6 +23,18 @@ The implemented architecture follows the deck's system narrative:
 2. Sensor stream to an ESP32 hub
 3. Shared data schema used by both patient and clinician experiences
 4. Explainable trajectory model and clear, non-black-box outputs
+5. Deployed ML inference service for multi-task outputs
+
+ML architecture coverage implemented:
+
+1. Data collection: thigh and shank IMU streams
+2. Edge processing context: ESP32 hub abstraction
+3. Data ingestion and preprocessing: sync, filtering, segmentation, feature engineering
+4. Multi-task deep learning model: 1D CNN + Bi-LSTM + Transformer encoder + multi-head outputs
+5. Outputs and applications: recovery score, exercise feedback, progress tracking, risk alert class, clinician dashboard signals
+6. Multimodal data context: wearable + symptoms + activity + demographics
+7. Continuous learning representation: data collection -> retraining -> monitoring -> model update pipeline steps
+8. Deployment: ML service + API + web via Docker Compose
 
 Core equation included in the model context:
 
@@ -36,6 +49,15 @@ theta_knee = theta_shank - theta_thigh - theta_cal
 │   │   └── src
 │   │       ├── mockData.ts
 │   │       └── server.ts
+│   ├── ml
+│   │   ├── app
+│   │   │   ├── main.py
+│   │   │   ├── model.py
+│   │   │   ├── pipeline.py
+│   │   │   └── schemas.py
+│   │   ├── Dockerfile
+│   │   ├── README.md
+│   │   └── requirements.txt
 │   └── web
 │       ├── index.html
 │       └── src
@@ -48,6 +70,7 @@ theta_knee = theta_shank - theta_thigh - theta_cal
 ├── packages
 │   └── shared
 │       └── src/index.ts
+├── docker-compose.yml
 └── README.md
 ```
 
@@ -74,6 +97,14 @@ Base URL: `http://localhost:8787/api`
 - `GET /progress`
 - `GET /devices`
 - `GET /care-team`
+- `POST /ml/infer`
+
+### ML Service Endpoints
+
+Base URL: `http://localhost:8000`
+
+- `GET /health`
+- `POST /infer`
 
 ## Run Locally
 
@@ -99,6 +130,31 @@ Then open:
 
 - Web app: http://localhost:5173
 - API: http://localhost:8787/api/health
+
+### 3) Run ML architecture service
+
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r apps/ml/requirements.txt
+npm run dev:ml
+```
+
+ML health:
+
+- http://localhost:8000/health
+
+### 4) Deploy complete stack with Docker
+
+```bash
+npm run deploy:up
+```
+
+Stop:
+
+```bash
+npm run deploy:down
+```
 
 ## Notes on Scope
 

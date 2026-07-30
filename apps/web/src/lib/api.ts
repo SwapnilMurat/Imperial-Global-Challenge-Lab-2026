@@ -1,4 +1,4 @@
-import type { CareTeamSummary, CheckIn, Device, ExerciseTask, Patient, ProgressPoint } from "@recoverai/shared";
+import type { CareTeamSummary, CheckIn, Device, ExerciseTask, MLInferenceResponse, Patient, ProgressPoint } from "@recoverai/shared";
 
 const API_BASE = import.meta.env.VITE_API_URL ?? "http://localhost:8787/api";
 
@@ -54,4 +54,10 @@ export function getDevices() {
 
 export function getCareTeam() {
   return request<CareTeamSummary>("/care-team");
+}
+
+export function runMLInference() {
+  return request<MLInferenceResponse>("/ml/infer", {
+    method: "POST"
+  });
 }
