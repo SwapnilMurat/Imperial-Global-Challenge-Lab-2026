@@ -15,6 +15,38 @@ It includes:
 - Deployable ML microservice matching the architecture diagram
 - Shared schema layer aligned to the architecture
 
+## ML Architecture (Main View)
+
+```mermaid
+flowchart LR
+	A[1. Data Collection\nThigh IMU + Shank IMU] --> B[2. Edge Processing\nESP32 Hub\nFusion + Orientation + Knee Angle]
+	B --> C[3. Ingestion & Preprocessing\nTime Sync + Filtering + Segmentation + Features]
+	C --> D[4. Multi-Task Model\n1D CNN -> Bi-LSTM -> Transformer -> Pooling]
+	D --> E1[Knee Angle Regression]
+	D --> E2[Exercise Quality Classification]
+	D --> E3[Repetition Count Regression]
+	D --> E4[ROM Progression Regression]
+	D --> E5[Deterioration Risk Classification]
+
+	E1 --> F[5. Outputs & Applications\nRecovery Score + Feedback + Tracking + Alerts + Dashboard]
+	E2 --> F
+	E3 --> F
+	E4 --> F
+	E5 --> F
+
+	G[6. Multimodal Sources\nWearable + Symptoms + Activity + Demographics] --> C
+	F --> H[7. Continuous Learning\nNew Data -> Retraining -> Monitoring -> Update]
+	H --> D
+	F --> I[8. Deployment\nCloud + API Gateway + Mobile App + Web Dashboard]
+```
+
+Implementation reference:
+
+- Model definition: apps/ml/app/model.py
+- Preprocessing pipeline: apps/ml/app/pipeline.py
+- Inference API: apps/ml/app/main.py
+- App integration endpoint: apps/api/src/server.ts
+
 ## Architecture
 
 The implemented architecture follows the deck's system narrative:
